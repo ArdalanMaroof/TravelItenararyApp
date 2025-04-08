@@ -11,35 +11,41 @@ import {
   Divider,
   MenuItem,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebaseConfig";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { capitals } from "../assets/capitals";
 
 export const NewTripPage = () => {
-  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the trip data from location.state (for editing purposes)
+  const tripDataFromLocation = location.state ? location.state.tripData : null;
+
+  // Initialize state based on the tripDataFromLocation if editing, or with empty fields for a new trip
   const [tripData, setTripData] = useState({
-    title: "",
-    destination: "",
-    startDate: "",
-    endDate: "",
-    budget: "",
-    currency: "USD",
+    title: tripDataFromLocation?.title || "",
+    destination: tripDataFromLocation?.destination || "",
+    startDate: tripDataFromLocation?.startDate || "",
+    endDate: tripDataFromLocation?.endDate || "",
+    budget: tripDataFromLocation?.budget || "",
+    currency: tripDataFromLocation?.currency || "USD",
   });
+
+  const navigate = useNavigate();
 
   const handleAddTrip = async () => {
     const { title, destination, startDate, endDate, budget, currency } = tripData;
-  
+
     // Logging for debugging
     console.log("Trip Data:", tripData);
-  
-    // Basic validation
+
     if (!title || !destination || !startDate || !endDate || !budget || !currency) {
       alert("⚠️ Please fill all fields before adding the trip.");
       return;
     }
-  
+
     try {
       await addDoc(collection(db, "trips"), {
         title,
@@ -50,7 +56,7 @@ export const NewTripPage = () => {
         currency,
         createdAt: new Date().toISOString(),
       });
-  
+
       alert("Trip added successfully!");
       navigate("/");
     } catch (error) {
@@ -58,7 +64,7 @@ export const NewTripPage = () => {
       alert("Error adding trip: " + error.message);
     }
   };
-  
+
   return (
     <Box sx={{ bgcolor: "#f5efe7", minHeight: "100vh", py: 8 }}>
       <Container maxWidth="sm">
