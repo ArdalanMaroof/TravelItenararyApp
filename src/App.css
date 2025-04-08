@@ -1,0 +1,14 @@
+.auth-card {
+    width: 400px;
+    padding: 16px;
+}
+
+.navButton {
+    color: white !important;
+    border: 1px solid white !important;
+}
+
+.create-blog-button {
+    background-color: white !important;
+    color: black !important;
+}
