@@ -11,7 +11,7 @@ import {
   Divider,
   MenuItem,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -20,10 +20,8 @@ import { capitals } from "../assets/capitals";
 export const NewTripPage = () => {
   const location = useLocation();
 
-  // Get the trip data from location.state (for editing purposes)
   const tripDataFromLocation = location.state ? location.state.tripData : null;
 
-  // Initialize state based on the tripDataFromLocation if editing, or with empty fields for a new trip
   const [tripData, setTripData] = useState({
     title: tripDataFromLocation?.title || "",
     destination: tripDataFromLocation?.destination || "",
@@ -35,14 +33,34 @@ export const NewTripPage = () => {
 
   const navigate = useNavigate();
 
+  // Helper to get today's date in yyyy-mm-dd format
+  const getTodayDateString = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
   const handleAddTrip = async () => {
     const { title, destination, startDate, endDate, budget, currency } = tripData;
 
-    // Logging for debugging
-    console.log("Trip Data:", tripData);
-
     if (!title || !destination || !startDate || !endDate || !budget || !currency) {
       alert("⚠️ Please fill all fields before adding the trip.");
+      return;
+    }
+
+    const today = getTodayDateString();
+
+    if (startDate < today) {
+      alert("🚫 Start date cannot be in the past.");
+      return;
+    }
+
+    if (endDate < today) {
+      alert("🚫 End date cannot be in the past.");
+      return;
+    }
+
+    if (endDate < startDate) {
+      alert("🚫 End date cannot be before the start date.");
       return;
     }
 
@@ -121,6 +139,7 @@ export const NewTripPage = () => {
                 type="date"
                 fullWidth
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getTodayDateString() }}
                 value={tripData.startDate}
                 onChange={(e) =>
                   setTripData({ ...tripData, startDate: e.target.value })
@@ -132,6 +151,7 @@ export const NewTripPage = () => {
                 type="date"
                 fullWidth
                 InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getTodayDateString() }}
                 value={tripData.endDate}
                 onChange={(e) =>
                   setTripData({ ...tripData, endDate: e.target.value })
