@@ -56,9 +56,14 @@ export const TripDetailsPage = () => {
 
   // Handle edit trip
  // src/pages/TripDetailsPage.jsx
-const handleEdit = () => {
-  navigate(`/new-trip`, { state: { tripData: trip } });
+ const handleEdit = () => {
+  navigate(`/new-trip`, {
+    state: {
+      tripData: { ...trip, id }, // include the ID
+    },
+  });
 };
+
 
 
   if (loading) {

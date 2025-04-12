@@ -12,7 +12,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { useNavigate, useLocation } from "react-router-dom";
 import { capitals } from "../assets/capitals";
@@ -23,6 +23,7 @@ export const NewTripPage = () => {
   const tripDataFromLocation = location.state ? location.state.tripData : null;
 
   const [tripData, setTripData] = useState({
+    id: tripDataFromLocation?.id || null, 
     title: tripDataFromLocation?.title || "",
     destination: tripDataFromLocation?.destination || "",
     startDate: tripDataFromLocation?.startDate || "",
@@ -40,48 +41,60 @@ export const NewTripPage = () => {
   };
 
   const handleAddTrip = async () => {
-    const { title, destination, startDate, endDate, budget, currency } = tripData;
-
+    const { title, destination, startDate, endDate, budget, currency, id } = tripData;
+  
     if (!title || !destination || !startDate || !endDate || !budget || !currency) {
-      alert("⚠️ Please fill all fields before adding the trip.");
+      alert("⚠️ Please fill all fields before continuing.");
       return;
     }
-
+  
     const today = getTodayDateString();
-
-    if (startDate < today) {
-      alert("🚫 Start date cannot be in the past.");
+  
+    if (startDate < today || endDate < today) {
+      alert("🚫 Dates cannot be in the past.");
       return;
     }
-
-    if (endDate < today) {
-      alert("🚫 End date cannot be in the past.");
-      return;
-    }
-
+  
     if (endDate < startDate) {
       alert("🚫 End date cannot be before the start date.");
       return;
     }
-
+  
     try {
-      await addDoc(collection(db, "trips"), {
-        title,
-        destination,
-        startDate,
-        endDate,
-        budget,
-        currency,
-        createdAt: new Date().toISOString(),
-      });
-
-      alert("Trip added successfully!");
+      if (id) {
+        // 🔁 EDIT MODE
+        const tripRef = doc(db, "trips", id);
+        await updateDoc(tripRef, {
+          title,
+          destination,
+          startDate,
+          endDate,
+          budget,
+          currency,
+          updatedAt: new Date().toISOString(),
+        });
+        alert("Trip updated successfully!");
+      } else {
+        // ➕ ADD MODE
+        await addDoc(collection(db, "trips"), {
+          title,
+          destination,
+          startDate,
+          endDate,
+          budget,
+          currency,
+          createdAt: new Date().toISOString(),
+        });
+        alert("Trip added successfully!");
+      }
+  
       navigate("/");
     } catch (error) {
-      console.error("Failed to add trip:", error.message);
-      alert("Error adding trip: " + error.message);
+      console.error("Failed to save trip:", error.message);
+      alert("Error: " + error.message);
     }
   };
+   
 
   return (
     <Box sx={{ bgcolor: "#f5efe7", minHeight: "100vh", py: 8 }}>
