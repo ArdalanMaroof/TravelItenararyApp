@@ -9,19 +9,22 @@ import {
   Button,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { doc, getDoc, deleteDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import SearchIcon from "@mui/icons-material/Search";
+import UserContext from "../context/UserContext";
 
 export const TripDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();  // Add navigate to programmatically redirect
   const [trip, setTrip] = useState(null); // Start with null until data is fetched
   const [loading, setLoading] = useState(true); // Loading state
+  const { user } = useContext(UserContext) || {};
+  const [isCreator, setIsCreator] = useState(false);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -29,7 +32,10 @@ export const TripDetailsPage = () => {
       const docRef = doc(db, "trips", id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setTrip(docSnap.data());
+        const tripData = { id: docSnap.id, ...docSnap.data() };
+        setTrip(tripData);
+        // Check if current user is the creator
+        setIsCreator(tripData.creatorId === auth.currentUser?.uid);
       } else {
         setTrip(null); // Set to null if trip doesn't exist
       }
@@ -41,6 +47,7 @@ export const TripDetailsPage = () => {
 
   // Handle delete trip
   const handleDelete = async () => {
+    if (!isCreator) return; // Prevent non-creators from deleting
     const confirmDelete = window.confirm("Are you sure you want to delete this trip?");
     if (confirmDelete) {
       try {
@@ -57,6 +64,7 @@ export const TripDetailsPage = () => {
   // Handle edit trip
  // src/pages/TripDetailsPage.jsx
  const handleEdit = () => {
+  if (!isCreator) return; // Prevent non-creators from editing
   navigate(`/new-trip`, {
     state: {
       tripData: { ...trip, id }, // include the ID
@@ -129,6 +137,7 @@ export const TripDetailsPage = () => {
             </Box>
 
             {/* Edit and Delete Buttons */}
+            {isCreator && (
             <Box mt={2} sx={{ display: "flex", justifyContent: "space-between" }}>
               <Button
                 variant="contained"
@@ -147,6 +156,7 @@ export const TripDetailsPage = () => {
                 🗑️ Delete
               </Button>
             </Box>
+            )}
           </CardContent>
         </Card>
       </Container>

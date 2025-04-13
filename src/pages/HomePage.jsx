@@ -13,7 +13,7 @@ import AddIcon from "@mui/icons-material/Add";
 import TravelExploreIcon from "@mui/icons-material/TravelExplore";
 import { useContext, useEffect, useState } from "react";
 import { collection, getDocs, addDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
 import UserContext from "../context/UserContext";
 
@@ -26,10 +26,15 @@ export const HomePage = () => {
     const fetchTrips = async () => {
       const tripCollection = collection(db, "trips");
       const snapshot = await getDocs(tripCollection);
+      const currentUserId = auth.currentUser?.uid;
       const tripList = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      }))
+      .filter(
+        (trip) =>
+          trip.visibility === "public" || trip.creatorId === currentUserId
+      );
       setTrips(tripList);
     };
 
@@ -44,6 +49,8 @@ export const HomePage = () => {
       endDate: "2025-04-18",
       budget: "1800",
       currency: "EUR",
+      visibility: "public", // Default to public for dummy trip
+      creatorId: auth.currentUser.uid,
     };
 
     try {
