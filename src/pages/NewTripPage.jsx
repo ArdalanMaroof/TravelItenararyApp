@@ -11,39 +11,52 @@ import {
   Divider,
   MenuItem,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useContext, useEffect } from "react";
 import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
 import { useNavigate, useLocation } from "react-router-dom";
 import { capitals } from "../assets/capitals";
+import UserContext from "../context/UserContext";
 
 export const NewTripPage = () => {
   const location = useLocation();
-
+  const { user } = useContext(UserContext) || {};
   const tripDataFromLocation = location.state ? location.state.tripData : null;
+  const navigate = useNavigate();
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
   const [tripData, setTripData] = useState({
-    id: tripDataFromLocation?.id || null, 
+    id: tripDataFromLocation?.id || null,
     title: tripDataFromLocation?.title || "",
     destination: tripDataFromLocation?.destination || "",
     startDate: tripDataFromLocation?.startDate || "",
     endDate: tripDataFromLocation?.endDate || "",
     budget: tripDataFromLocation?.budget || "",
     currency: tripDataFromLocation?.currency || "USD",
+    visibility: tripDataFromLocation?.visibility || "private",
   });
 
-  const navigate = useNavigate();
+   // Check authentication state
+   useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (!currentUser) {
+        navigate("/login"); // Redirect to login if not authenticated
+      }
+      setLoadingAuth(false);
+    });
 
-  // Helper to get today's date in yyyy-mm-dd format
+    return () => unsubscribe();
+  }, [navigate]);
+
   const getTodayDateString = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   };
 
   const handleAddTrip = async () => {
-    const { title, destination, startDate, endDate, budget, currency, id } = tripData;
+    const { title, destination, startDate, endDate, budget, visibility, currency, id } = tripData;
   
-    if (!title || !destination || !startDate || !endDate || !budget || !currency) {
+    if (!title || !destination || !startDate || !endDate || !budget || !currency || !visibility) {
       alert("⚠️ Please fill all fields before continuing.");
       return;
     }
@@ -61,6 +74,11 @@ export const NewTripPage = () => {
     }
   
     try {
+      if (!auth.currentUser) {
+        alert("You must be logged in to create a trip.");
+        navigate("/login");
+        return;
+      }
       if (id) {
         // 🔁 EDIT MODE
         const tripRef = doc(db, "trips", id);
@@ -71,6 +89,7 @@ export const NewTripPage = () => {
           endDate,
           budget,
           currency,
+          visibility,
           updatedAt: new Date().toISOString(),
         });
         alert("Trip updated successfully!");
@@ -83,6 +102,8 @@ export const NewTripPage = () => {
           endDate,
           budget,
           currency,
+          visibility,
+          creatorId: auth.currentUser.uid, // Safe to access after check
           createdAt: new Date().toISOString(),
         });
         alert("Trip added successfully!");
@@ -95,6 +116,9 @@ export const NewTripPage = () => {
     }
   };
    
+  if (loadingAuth) {
+    return <Typography>Loading...</Typography>;
+  }
 
   return (
     <Box sx={{ bgcolor: "#f5efe7", minHeight: "100vh", py: 8 }}>
@@ -196,6 +220,20 @@ export const NewTripPage = () => {
                     {curr}
                   </MenuItem>
                 ))}
+              </TextField>
+
+
+              <TextField
+                label="Visibility"
+                select
+                fullWidth
+                value={tripData.visibility}
+                onChange={(e) =>
+                  setTripData({ ...tripData, visibility: e.target.value })
+                }
+              >
+                <MenuItem value="public">Public</MenuItem>
+                <MenuItem value="private">Private</MenuItem>
               </TextField>
 
               <Button
