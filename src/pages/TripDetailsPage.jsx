@@ -16,6 +16,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import SearchIcon from "@mui/icons-material/Search";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 import UserContext from "../context/UserContext";
 
 export const TripDetailsPage = () => {
@@ -72,7 +73,9 @@ export const TripDetailsPage = () => {
   });
 };
 
-
+const handleViewExpenses = () => {
+  navigate(`/trip/${id}/expenses`);
+};
 
   if (loading) {
     return <div>Loading...</div>; // Show loading message while fetching
@@ -136,9 +139,19 @@ export const TripDetailsPage = () => {
               />
             </Box>
 
+            <Box mt={2} sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Button
+                variant="contained"
+                startIcon={<ReceiptIcon />}
+                onClick={handleViewExpenses}
+                sx={{ px: 3, fontSize: "14px", bgcolor: "#388e3c" }}
+              >
+                💸 Expenses
+              </Button>
+
             {/* Edit and Delete Buttons */}
             {isCreator && (
-            <Box mt={2} sx={{ display: "flex", justifyContent: "space-between" }}>
+              <>
               <Button
                 variant="contained"
                 color="primary"
@@ -155,9 +168,10 @@ export const TripDetailsPage = () => {
               >
                 🗑️ Delete
               </Button>
-            </Box>
+            </>
             )}
-          </CardContent>
+          </Box>  
+        </CardContent>
         </Card>
       </Container>
     </Box>

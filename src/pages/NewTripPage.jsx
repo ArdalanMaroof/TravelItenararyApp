@@ -39,7 +39,9 @@ export const NewTripPage = () => {
    // Check authentication state
    useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      console.log("Auth state changed:", currentUser); // Debug log
       if (!currentUser) {
+        console.log("No user authenticated, redirecting to login");
         navigate("/login"); // Redirect to login if not authenticated
       }
       setLoadingAuth(false);
@@ -75,10 +77,24 @@ export const NewTripPage = () => {
   
     try {
       if (!auth.currentUser) {
+        console.log("No current user found");
         alert("You must be logged in to create a trip.");
         navigate("/login");
         return;
       }
+
+      console.log("Creating trip with data:", {
+        title,
+        destination,
+        startDate,
+        endDate,
+        budget,
+        currency,
+        visibility,
+        creatorId: auth.currentUser.uid,
+        
+      }); // Debug log
+
       if (id) {
         // 🔁 EDIT MODE
         const tripRef = doc(db, "trips", id);
