@@ -29,13 +29,21 @@ const customTheme = createTheme({
     borderRadius: 12,
   },
   components: {
-    MuiCard: {
+    MuiTextField: {
       styleOverrides: {
         root: {
-          boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: '#c4c4c4', // visible border
+            },
+            '&:hover fieldset': {
+              borderColor: '#1976d2', // hover color
+            },
+          },
         },
       },
     },
+    
   },
 });
 

@@ -9,13 +9,12 @@ import { GoogleAuthProvider } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDKmd5Wn_w-gL8aYo4WekPp0ap5kVz8amg",
-  authDomain: "travelapp9899.firebaseapp.com",
-  projectId: "travelapp9899",
-  storageBucket: "travelapp9899.firebasestorage.app",
-  messagingSenderId: "963898498719",
-  appId: "1:963898498719:web:10c5d2545642558dd98caa",
-  measurementId: "G-J1BX65QBN1"
+  apiKey: "AIzaSyCiI_5tLlOzU5L1HbmXtHbhwdSw3omiZVc",
+  authDomain: "travel-itinerary-app-896c1.firebaseapp.com",
+  projectId: "travel-itinerary-app-896c1",
+  storageBucket: "travel-itinerary-app-896c1.firebasestorage.app",
+  messagingSenderId: "912025465302",
+  appId: "1:912025465302:web:ffddaed12fb3c3b24f3477"
 };
 
 // Initialize Firebase
