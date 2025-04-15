@@ -36,7 +36,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, []);
 
   return (
     <UserContext.Provider value={user}>
