@@ -1,4 +1,3 @@
-// src/pages/HomePage.jsx
 import {
   Box,
   Button,
@@ -13,7 +12,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import TravelExploreIcon from "@mui/icons-material/TravelExplore";
 import { useContext, useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 import { db, auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
 import UserContext from "../context/UserContext";
@@ -22,53 +21,25 @@ export const HomePage = () => {
   const data = useContext(UserContext);
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  const fetchTrips = async () => {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    const fetchTrips = async () => {
       const tripCollection = collection(db, "trips");
       const snapshot = await getDocs(tripCollection);
       const currentUserId = auth.currentUser?.uid;
-
-      console.log("Current user ID:", currentUserId); // Debug log
-      console.log("Raw trip data:", snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))); // Debug log
-
-      const tripList = snapshot.docs
-        .map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-        .filter((trip) => {
-          const isPublic = trip.visibility === "public";
-          const isCreator = trip.creatorId === currentUserId;
-          console.log(`Trip ${trip.id}: visibility=${trip.visibility}, creatorId=${trip.creatorId}, isPublic=${isPublic}, isCreator=${isCreator}`); // Debug log
-          return isPublic || isCreator;
-        });
-
-      console.log("Filtered trips:", tripList); // Debug log
+      const tripList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter(
+        (trip) =>
+          trip.visibility === "public" || trip.creatorId === currentUserId
+      );
       setTrips(tripList);
-    } catch (error) {
-      console.error("Error fetching trips:", error);
-      alert("Error fetching trips: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        console.log("User authenticated, fetching trips:", user.uid); // Debug log
-        fetchTrips();
-      } else {
-        console.log("No user authenticated, redirecting to login");
-        navigate("/login");
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
+    fetchTrips();
+  }, []);
 
   const handleAddDummyTrip = async () => {
     const dummyTrip = {
@@ -78,17 +49,16 @@ export const HomePage = () => {
       endDate: "2025-04-18",
       budget: "1800",
       currency: "EUR",
-      visibility: "public",
+      visibility: "public", // Default to public for dummy trip
       creatorId: auth.currentUser.uid,
     };
 
     try {
       await addDoc(collection(db, "trips"), dummyTrip);
       alert("Dummy trip added!");
-      fetchTrips(); // Refresh trips without reloading
-    } catch (error) {
-      console.error("Error adding dummy trip:", error.message);
-      alert("Error adding dummy trip: " + error.message);
+      window.location.reload();
+    } catch (err) {
+      console.error("Error adding dummy trip:", err.message);
     }
   };
 
@@ -143,9 +113,7 @@ export const HomePage = () => {
           Your Trips:
         </Typography>
 
-        {loading ? (
-          <Typography>Loading trips...</Typography>
-        ) : trips.length === 0 ? (
+        {trips.length === 0 ? (
           <Paper
             elevation={0}
             sx={{

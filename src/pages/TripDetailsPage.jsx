@@ -21,40 +21,38 @@ import UserContext from "../context/UserContext";
 
 export const TripDetailsPage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();  // Add navigate to programmatically redirect
-  const [trip, setTrip] = useState(null); // Start with null until data is fetched
-  const [loading, setLoading] = useState(true); // Loading state
+  const navigate = useNavigate();
+  const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { user } = useContext(UserContext) || {};
   const [isCreator, setIsCreator] = useState(false);
 
   useEffect(() => {
     const fetchTrip = async () => {
-      setLoading(true); // Start loading
+      setLoading(true);
       const docRef = doc(db, "trips", id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const tripData = { id: docSnap.id, ...docSnap.data() };
         setTrip(tripData);
-        // Check if current user is the creator
         setIsCreator(tripData.creatorId === auth.currentUser?.uid);
       } else {
-        setTrip(null); // Set to null if trip doesn't exist
+        setTrip(null);
       }
-      setLoading(false); // Stop loading
+      setLoading(false);
     };
 
     fetchTrip();
   }, [id]);
 
-  // Handle delete trip
   const handleDelete = async () => {
-    if (!isCreator) return; // Prevent non-creators from deleting
+    if (!isCreator) return;
     const confirmDelete = window.confirm("Are you sure you want to delete this trip?");
     if (confirmDelete) {
       try {
         await deleteDoc(doc(db, "trips", id));
         alert("Trip deleted successfully!");
-        navigate("/");  // Redirect to home page after deletion
+        navigate("/");
       } catch (error) {
         console.error("Error deleting trip:", error.message);
         alert("Error deleting trip: " + error.message);
@@ -62,27 +60,25 @@ export const TripDetailsPage = () => {
     }
   };
 
-  // Handle edit trip
- // src/pages/TripDetailsPage.jsx
- const handleEdit = () => {
-  if (!isCreator) return; // Prevent non-creators from editing
-  navigate(`/new-trip`, {
-    state: {
-      tripData: { ...trip, id }, // include the ID
-    },
-  });
-};
+  const handleEdit = () => {
+    if (!isCreator) return;
+    navigate(`/new-trip`, {
+      state: {
+        tripData: { ...trip, id },
+      },
+    });
+  };
 
-const handleViewExpenses = () => {
-  navigate(`/trip/${id}/expenses`);
-};
+  const handleViewExpenses = () => {
+    navigate(`/trip/${id}/expenses`);
+  };
 
   if (loading) {
-    return <div>Loading...</div>; // Show loading message while fetching
+    return <div>Loading...</div>;
   }
 
   if (!trip) {
-    return <div>Trip not found.</div>; // Handle case when trip is not found
+    return <div>Trip not found.</div>;
   }
 
   return (
@@ -148,30 +144,28 @@ const handleViewExpenses = () => {
               >
                 💸 Expenses
               </Button>
-
-            {/* Edit and Delete Buttons */}
-            {isCreator && (
-              <>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleEdit}
-                sx={{ px: 3, fontSize: "14px" }}
-              >
-                ✏️ Edit
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleDelete}
-                sx={{ px: 3, fontSize: "14px" }}
-              >
-                🗑️ Delete
-              </Button>
-            </>
-            )}
-          </Box>  
-        </CardContent>
+              {isCreator && (
+                <>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleEdit}
+                    sx={{ px: 3, fontSize: "14px" }}
+                  >
+                    ✏️ Edit
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleDelete}
+                    sx={{ px: 3, fontSize: "14px" }}
+                  >
+                    🗑️ Delete
+                  </Button>
+                </>
+              )}
+            </Box>
+          </CardContent>
         </Card>
       </Container>
     </Box>
