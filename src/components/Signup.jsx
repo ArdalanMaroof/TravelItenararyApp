@@ -36,7 +36,7 @@ export const Signup = () => {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const handleSignup = async () => {
     try {
